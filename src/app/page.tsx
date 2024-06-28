@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { FaFacebook, FaInstagram } from "react-icons/fa6";
 import { Button } from "@/components/ui/button";
 import { MdContentCopy } from "react-icons/md";
 import {
@@ -15,16 +16,21 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import Link from "next/link";
 
+type SocialType = "facebook" | "instagram";
 export default function Home() {
   const defaultOTPStr = "______";
   const [otp, setOtp] = useState<string>(defaultOTPStr);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSocialSelected, setIsSocialSelected] =
+    useState<SocialType>("facebook");
   const { toast } = useToast();
   async function generateOTPhandler() {
     setIsLoading(true);
     setOtp(defaultOTPStr);
     try {
-      const response = await fetch("/api/generate-otp");
+      const response = await fetch(
+        `/api/generate-otp?type=${isSocialSelected}`
+      );
       if (response.status >= 200 && response.status < 300) {
         const results = await response.json();
         setOtp(results.otp);
@@ -49,6 +55,11 @@ export default function Home() {
     });
   }
 
+  function toogleSocial({ type }: { type: SocialType }) {
+    setIsSocialSelected(type);
+    setOtp(defaultOTPStr);
+  }
+
   return (
     <main className="flex min-h-screen  items-center justify-center p-24">
       <div className="flex flex-col space-y-12 justify-center">
@@ -68,11 +79,34 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <div className="flex space-x-4  ">
+              <Button
+                variant={isSocialSelected == "facebook" ? "default" : "outline"}
+                className="w-full flex items-center"
+                onClick={() => toogleSocial({ type: "facebook" })}
+              >
+                <FaFacebook className="mr-2 h-4 w-4" /> Facebook OTP
+              </Button>
+              <Button
+                variant={
+                  isSocialSelected == "instagram" ? "default" : "outline"
+                }
+                onClick={() => toogleSocial({ type: "instagram" })}
+                className="w-full  flex  items-center"
+              >
+                <FaInstagram className="mr-2 h-4 w-4" /> Instagram OTP
+              </Button>
+            </div>
             <div className="flex items-center flex-col">
-              <div>
-                <p className="text-[48px] text-black tracking-widest text-center">
+              <div className="my-10">
+                <p className="text-[48px] text-black tracking-widest text-center  leading-tight">
                   {otp}
                 </p>
+                {otp !== defaultOTPStr && (
+                  <p className="text-slate-400 uppercase text-[12px] text-center  leading-none">
+                    Generated {isSocialSelected} Otp
+                  </p>
+                )}
               </div>
               {otp !== defaultOTPStr && (
                 <Button
